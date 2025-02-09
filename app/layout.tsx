@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
-
+import { getUser } from '@/lib/db/queries'
+import { UserProvider } from '@/lib/auth'
+import { User } from '@/lib/db/types'
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -22,15 +24,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  let userPromise = getUser()
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="w-full min-h-screen bg-secondary">
-          <div className="w-[400px] h-[400px] absolute bottom-[100px] left-[300px] ml-[-100px] bg-primary blur-[100px] rounded-full opacity-50"></div>
-          {children}
-        </div>
+        <UserProvider userPromise={userPromise as Promise<User | null>}>
+          <div className="w-full min-h-screen bg-secondary">
+            <div className="w-[400px] h-[400px] absolute bottom-[100px] left-[300px] ml-[-100px] bg-primary blur-[100px] rounded-full opacity-50"></div>
+            {children}
+          </div>
+        </UserProvider>
       </body>
     </html>
   )

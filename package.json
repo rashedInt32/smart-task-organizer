@@ -13,24 +13,32 @@
     "realtime": "node --loader ts-node/esm ./lib/db/realtime.ts"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "@prisma/client": "5.22.0",
     "@prisma/extension-accelerate": "1.2.1",
     "@prisma/extension-pulse": "1.2.0",
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.1",
     "@types/node": "22.10.5",
+    "await-to-js": "^3.0.0",
+    "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "16.4.7",
+    "jose": "^5.9.6",
     "lucide-react": "^0.471.1",
     "next": "15.1.4",
+    "openai": "^4.80.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.24.1",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

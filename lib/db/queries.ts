@@ -1,110 +1,98 @@
-import { PrismaClient } from '@prisma/client';
-import { withAccelerate } from '@prisma/extension-accelerate';
+'use server'
+import { cookies } from 'next/headers'
+import { verifyToken } from '@/lib/auth/session'
+import { User, Task, CreateTaskInput } from '@/lib/db/types'
+import { db } from '@/lib/db'
 
-const prisma = new PrismaClient()
-  .$extends(withAccelerate());
+export async function getUser() {
+  const sessionCookie = (await cookies()).get('session')
+  if (!sessionCookie || !sessionCookie.value) {
+    return null
+  }
 
-// A `main` function so that we can use async/await
-async function main() {
+  const sessionData = await verifyToken(sessionCookie.value)
 
-  const user1Email = `alice${Date.now()}@prisma.io`;
-  const user2Email = `bob${Date.now()}@prisma.io`;
+  if (
+    !sessionData ||
+    !sessionData.user ||
+    typeof sessionData.user.id !== 'number'
+  ) {
+    return null
+  }
 
-  // Seed the database with users and posts
-  const user1 = await prisma.user.create({
-    data: {
-      email: user1Email,
-      name: 'Alice',
-      posts: {
-        create: {
-          title: 'Join the Prisma community on Discord',
-          content: 'https://pris.ly/discord',
-          published: true,
-        },
-      },
-    },
-    include: {
-      posts: true,
-    },
-  });
-  const user2 = await prisma.user.create({
-    data: {
-      email: user2Email,
-      name: 'Bob',
-      posts: {
-        create: [
-          {
-            title: 'Check out Prisma on YouTube',
-            content: 'https://pris.ly/youtube',
-            published: true,
-          },
-          {
-            title: 'Follow Prisma on Twitter',
-            content: 'https://twitter.com/prisma/',
-            published: false,
-          },
-        ],
-      },
-    },
-    include: {
-      posts: true,
-    },
-  });
-  console.log(
-    `Created users: ${user1.name} (${user1.posts.length} post) and ${user2.name} (${user2.posts.length} posts) `,
-  );
+  if (new Date(sessionData.expires) < new Date()) {
+    return null
+  }
 
-  // Retrieve all published posts
-  const allPosts = await prisma.post.findMany({
-    where: { published: true },
-  });
-  console.log(`Retrieved all published posts: ${JSON.stringify(allPosts)}`);
+  const user = await getUserById(sessionData.user.id)
+  if (!user) return null
 
-  // Create a new post (written by an already existing user with email alice@prisma.io)
-  const newPost = await prisma.post.create({
-    data: {
-      title: 'Join the Prisma Discord community',
-      content: 'https://pris.ly/discord',
-      published: false,
-      author: {
-        connect: {
-          email: user1Email,
-        },
-      },
-    },
-  });
-  console.log(`Created a new post: ${JSON.stringify(newPost)}`);
-
-  // Publish the new post
-  const updatedPost = await prisma.post.update({
-    where: {
-      id: newPost.id,
-    },
-    data: {
-      published: true,
-    },
-  });
-  console.log(`Published the newly created post: ${JSON.stringify(updatedPost)}`);
-
-  // Retrieve all posts by user with email alice@prisma.io
-  const postsByUser = await prisma.post
-    .findMany({
-      where: {
-        author: {
-          email: user1Email
-        }
-      },
-    });
-  console.log(`Retrieved all posts from a specific user: ${JSON.stringify(postsByUser)}`);
-
+  return user as User
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect();
+export async function createUser({
+  email,
+  password,
+}: {
+  email: string
+  password: string
+}) {
+  return db.user.create({
+    data: {
+      email,
+      password,
+    },
   })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+}
+
+export async function getUserByEmail(email: string) {
+  const user = await db.user.findUnique({ where: { email } })
+  if (user) return user
+  return null
+}
+
+export async function getUserById(id: number) {
+  const user = await db.user.findUnique({ where: { id } })
+  if (user) return user
+  return null
+}
+
+export async function createTask(task: CreateTaskInput) {
+  return db.task.create({
+    data: {
+      ...task,
+      status: task.status ?? 'pending',
+    },
+    include: {
+      user: true,
+    },
+  })
+}
+
+export async function getTasks(userId: number) {
+  return db.task.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      user: true,
+    },
+  })
+}
+
+export async function updateTask(task: Task) {
+  const { user, createdAt, updatedAt, ...updateData } = task
+  return db.task.update({
+    where: { id: task.id },
+    data: {
+      ...updateData,
+      status: updateData.status ?? 'pending',
+    },
+  })
+}
+
+export async function deleteTask(id: number) {
+  return db.task.delete({
+    where: { id },
+  })
+}
