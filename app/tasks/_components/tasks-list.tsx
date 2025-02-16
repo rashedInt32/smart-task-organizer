@@ -1,4 +1,5 @@
 'use client'
+import dayjs from 'dayjs'
 import { useTasks } from '../_hooks/useTasks'
 
 export const TaskList = () => {
@@ -15,8 +16,8 @@ export const TaskList = () => {
             {task.title}
           </h1>
           <div className="flex space-x-6 text-gray-600">
-            <p>{task.date}</p>
-            <p>{task.time}</p>
+            <p>{dayjs(task.date).format('DD/MM/YYYY')}</p>
+            <p>{dayjs(task.time).format('HH:mm A')}</p>
             <p>{task.priority}</p>
             <p>{task.status}</p>
           </div>
