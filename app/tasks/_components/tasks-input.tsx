@@ -6,7 +6,7 @@ import { useTasks } from "../_hooks/useTasks";
 import { cn } from "@/lib/utils";
 
 export const TasksInput = () => {
-  const { onSubmit, setTask, isLoading } = useTasks();
+  const { onSubmit, task, setTask, isLoading } = useTasks();
   return (
     <div className="flex justify-center items-center fixed bottom-0 left-0 right-0">
       <div className="max-w-[700px] w-full mx-auto">
@@ -18,6 +18,7 @@ export const TasksInput = () => {
             placeholder="Type task here"
             onChange={(e) => setTask(e.target.value)}
             disabled={isLoading}
+            value={task}
           />
           <Button
             type="submit"

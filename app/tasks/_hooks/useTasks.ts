@@ -28,7 +28,6 @@ export const useTasks = () => {
     };
     //await createTask(taskInput);
     const { response, error } = await tryCatch(createTask(taskInput));
-    console.log(response, error);
     setIsLoading(false);
     setTask("");
   };
